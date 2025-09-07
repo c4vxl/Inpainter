@@ -1,5 +1,4 @@
 from PIL import Image, ImageChops
-import torch
 
 from models.mask.SegformerB2Clothes import SegformerB2Clothes
 from models.inpaint.DiffusionInpainter import DiffusionInpainter
@@ -115,7 +114,7 @@ def run(image: Image.Image, prompt: str, negative_prompt: str,
     # Load models
     progress(0, desc="Preparing models...")
     model = DiffusionInpainter(inpaint_model, load_in_4bit, use_safety_checker)
-    enhancer = CodeFormer("cuda" if torch.cuda.is_available() else "cpu")
+    enhancer = CodeFormer()
 
     progress(0.2, desc="Loading mask...")
     mask = state.get("mask", None)
@@ -138,6 +137,22 @@ def run(image: Image.Image, prompt: str, negative_prompt: str,
 
     # Enhance results
     progress(0.9, desc="Enhancing images...")
+    images = enhancer(
+        images, upscale = upscale_value,
+        background_enhance = enhance_background, face_upsample = face_upsample,
+        codeformer_fidelity = fidelity,
+        has_aligned = has_aligned, draw_box = draw_box
+    )
+
+    # show images
+    return images
+
+def rerun_enhancer(image_paths: list[str], enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float, progress=gr.Progress(track_tqdm=True)):
+    enhancer = CodeFormer()
+
+    images = [ Image.open(path).convert("RGB") for path, _ in image_paths ]
+
+    # Enhance images
     images = enhancer(
         images, upscale = upscale_value,
         background_enhance = enhance_background, face_upsample = face_upsample,
@@ -227,6 +242,8 @@ with gr.Blocks(css=css) as demo:
                 upscale_value = gr.Slider(1, 4, value=SETTINGS["upscale_value"], step=1, label='Upscale value')
                 fidelity = gr.Slider(0, 1, value=SETTINGS["fidelity"], step=0.01, label='Fidelity (0 for better quality, 1 for better identity)')
 
+                rerun_enhancer_btn = gr.Button("Rerun enhancer")
+
     gr.HTML("<br><br><br>")
 
     magic_prompt = gr.TextArea(SETTINGS["magic_prompt"], label="Prompt suffix")
@@ -238,8 +255,14 @@ with gr.Blocks(css=css) as demo:
     input_image.upload(generate_mask, inputs=[input_image, masking_model, masks, mask_expansion, state], outputs=[mask_preview, state])
 
     run_event = run_btn.click(
-        fn=run, 
+        fn=run,
         inputs=[ input_image, prompt, negative_prompt, inpaint_model, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, resolution, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, state ],
+        outputs=[ output_preview ]
+    )
+
+    rerun_event = rerun_enhancer_btn.click(
+        fn=rerun_enhancer,
+        inputs=[ output_preview, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity ],
         outputs=[ output_preview ]
     )
 
