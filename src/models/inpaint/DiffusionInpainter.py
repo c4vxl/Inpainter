@@ -2,11 +2,11 @@ import torch
 from diffusers import DiffusionPipeline
 from PIL import Image
 
-from config.Config import DIFFUSION_INPAINTER_DEFAULT_MODEL
+from config.Config import DIFFUSION_INPAINTER_DEFAULT_MODEL, LOAD_IN_4BIT, USE_SAFETY_CHECKER
 from .base import Inpainter
 
 class DiffusionInpainter(Inpainter):
-    def __init__(self, model_name: str = DIFFUSION_INPAINTER_DEFAULT_MODEL, load_in_4bit = False, use_safety_checker: bool = False, **kwargs) -> None:
+    def __init__(self, model_name: str = DIFFUSION_INPAINTER_DEFAULT_MODEL, load_in_4bit = LOAD_IN_4BIT, use_safety_checker: bool = USE_SAFETY_CHECKER, **kwargs) -> None:
         super().__init__()
 
         if load_in_4bit:
