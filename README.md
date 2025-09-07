@@ -33,9 +33,9 @@
 - [License](#license)
 
 **Inpainter provides:**
-🖥️ A Gradio web interface for easy experimentation
-🐍 A Python API for scripted pipelines
-🔧 A modular model system allowing to swap in any masking, inpainting, or enhancement model
+- 🖥️ A Gradio web interface for easy experimentation
+- 🐍 A Python API for scripted pipelines
+- 🔧 A modular model system allowing to swap in any masking, inpainting, or enhancement model
 
 # Quickstart
 #### Download
