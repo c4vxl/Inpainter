@@ -18,13 +18,13 @@ SETTINGS = {
     "mask_expansion": 0,
 
     "negative_prompt": "unnatural transitions, unsmooth transision, incorrect colors, inconsistent color, color missmatch",
-    "resolution": 2048,
+    "resolution": 512,
     "inpainting_model": Config.DIFFUSION_INPAINTER_DEFAULT_MODEL,
     "guidance_scale": 10.,
-    "strength": 0.4,
+    "strength": 0.5,
     "num_inference_steps": 75,
     "num_images": 4,
-    "mask_blur": 1,
+    "mask_blur": 2,
     "use_safety_checker": Config.USE_SAFETY_CHECKER,
     "load_in_4bit": Config.LOAD_IN_4BIT,
 
@@ -33,7 +33,7 @@ SETTINGS = {
     "draw_box": False,
     "has_aligned": False,
     "upscale_value": 4,
-    "fidelity": 0.8
+    "fidelity": 0.5,
 }
 
 def generate_mask(image: Image.Image, masking_model: str, masks: list[str], mask_expansion: int, state: dict, progress=gr.Progress(track_tqdm=True)):
