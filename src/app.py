@@ -2,7 +2,6 @@ from PIL import Image, ImageChops
 
 import tempfile
 import json
-import uuid
 
 from models.mask.SegformerB2Clothes import SegformerB2Clothes
 from models.inpaint.DiffusionInpainter import DiffusionInpainter
