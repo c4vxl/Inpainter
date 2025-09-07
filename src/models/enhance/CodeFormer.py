@@ -6,7 +6,6 @@ import cv2
 from PIL import Image
 
 import torch
-import numpy as np
 
 from torchvision.transforms.functional import normalize
 
@@ -30,8 +29,11 @@ class CodeFormer(Enhancer):
         'realesrgan': 'https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/RealESRGAN_x2plus.pth'
     }
     
-    def __init__(self, device: str) -> None:
-        self.device = device
+    def __init__(self, device: str = "auto") -> None:
+        if device == "auto":
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        self.device = torch.device(device)
 
         # Prepare model states
         self.model_paths = self._get_model_paths(user_cache_dir("CodeFormer"))
@@ -94,11 +96,11 @@ class CodeFormer(Enhancer):
 
     def generate(self,
                  image: Image.Image, upscale: int = 2, background_enhance: bool = True, face_upsample: bool = True, codeformer_fidelity: float = 0.5,
-                 has_aligned = False, draw_box = False, detection_model = "retinaface_resnet50"
+                 only_center_face: bool = False, has_aligned = False, draw_box = False, detection_model = "retinaface_resnet50"
                 ) -> Optional[Image.Image]:
         # limit upscale based on memory and image size
         height = image.size[1]
-        upscale = 2 if upscale > 2 and height > 1000 else max(upscale, 4)
+        upscale = 2 if height > 1000 else min(upscale, 4)
         if height > 1500:
             upscale = 1
             background_enhance = face_upsample = False
@@ -128,6 +130,9 @@ class CodeFormer(Enhancer):
             face_helper.cropped_faces = [img]
         else:
             face_helper.read_image(img)
+            face_helper.get_face_landmarks_5(
+                only_center_face=only_center_face, resize=640, eye_dist_threshold=5
+            )
             face_helper.align_warp_face() # align and warp each face
         
         # face restoration for each cropped face
@@ -137,7 +142,7 @@ class CodeFormer(Enhancer):
                 cropped_face / 255.0, bgr2rgb=True, float32=True
             )
             normalize(cropped_face_t, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True) # type: ignore
-            cropped_face_t = cropped_face_t.unsqueeze(0).to(device) # type: ignore
+            cropped_face_t = cropped_face_t.unsqueeze(0).to(self.device) # type: ignore
 
             try:
                 with torch.no_grad():
@@ -156,13 +161,6 @@ class CodeFormer(Enhancer):
             restored_face = restored_face.astype("uint8") # type: ignore
             face_helper.add_restored_face(restored_face)
         
-        # upsample the background
-        if bg_upsampler is not None:
-            # Now only support RealESRGAN for upsampling background
-            bg_img = bg_upsampler.enhance(img, outscale=upscale)[0]
-        else:
-            bg_img = None
-        
         # paste_back
         if not has_aligned:
             # upsample the background
@@ -171,6 +169,7 @@ class CodeFormer(Enhancer):
                 bg_img = bg_upsampler.enhance(img, outscale=upscale)[0]
             else:
                 bg_img = None
+
             face_helper.get_inverse_affine(None)
             # paste each restored face to the input image
             if face_upsample and face_upsampler is not None:
