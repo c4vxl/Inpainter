@@ -1,5 +1,9 @@
 from PIL import Image, ImageChops
 
+import tempfile
+import json
+import uuid
+
 from models.mask.SegformerB2Clothes import SegformerB2Clothes
 from models.inpaint.DiffusionInpainter import DiffusionInpainter
 from models.enhance.CodeFormer import CodeFormer
@@ -166,6 +170,57 @@ def rerun_enhancer(image_paths: list[str], enhance_background: bool, face_upsamp
 def change_magic_prompt(magic_prompt: str):
     SETTINGS["magic_prompt"] = magic_prompt
 
+def export_config(magic_prompt: str, masking_model: str, masks: list[str], mask_expansion: int, prompt: str, negative_prompt: str,
+                  resolution: int, inpaint_model: str, guidance_scale: float, strength: float,
+                  num_inference_steps: int, num_images_per_prompt: int, mask_blur: int, use_safety_checker: bool, load_in_4bit: bool,
+                  enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float):
+    config_data = json.dumps({
+        "magic_prompt": magic_prompt,
+        "masking_model": masking_model,
+        "masks": masks,
+        "mask_expansion": mask_expansion,
+        "prompt": prompt,
+        "negative_prompt": negative_prompt,
+        "resolution": resolution,
+        "inpaint_model": inpaint_model,
+        "guidance_scale": guidance_scale,
+        "strength": strength,
+        "num_inference_steps": num_inference_steps,
+        "num_images_per_prompt": num_images_per_prompt,
+        "mask_blur": mask_blur,
+        "use_safety_checker": use_safety_checker,
+        "load_in_4bit": load_in_4bit,
+        "enhance_background": enhance_background,
+        "face_upsample": face_upsample,
+        "draw_box": draw_box,
+        "has_aligned": has_aligned,
+        "upscale_value": upscale_value,
+        "fidelity": fidelity
+    }, indent=4)
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.conf') as tmpfile:
+        tmpfile.write(config_data.encode('utf-8'))
+        tmpfile_path = tmpfile.name
+    
+    return tmpfile_path
+
+def import_config(config_path: str):
+    data: dict|None = None
+    with open(config_path, "r") as f:
+        data = dict(json.load(f))
+    
+    if data is None:
+        raise FileNotFoundError("Failed to load config.")
+
+    def get(key: str):
+        return data.get(key, SETTINGS.get(key, ""))
+    
+    return get("magic_prompt"), get("masking_model"), get("masks"), get("mask_expansion"), get("prompt"), get("negative_prompt"), \
+            get("resolution"), get("inpaint_model"), get("guidance_scale"), get("strength"), get("num_inference_steps"), get("num_images_per_prompt"), \
+            get("mask_blur"), get("use_safety_checker"), get("load_in_4bit"), get("enhance_background"), get("face_upsample"), get("draw_box"), \
+            get("has_aligned"), get("upscale_value"), get("fidelity"),
+    
+
 css = """
 * { font-family: system-ui; }
 tr { background: #18181B; }
@@ -173,6 +228,8 @@ tr:nth-child(even) { background: #27272A; }
 tr:hover { background: #52525B; }
 footer {height: 0px; visibility: hidden}
 a { color: #7d7d80 }
+.svelte-1ixn6qd { height: 100%; max-height: unset; flex-grow: 1 }
+.svelte-1xp0cw7 { display: flex; justify-content: center; align-items: center }
 """
 
 with gr.Blocks(css=css) as demo:
@@ -246,7 +303,19 @@ with gr.Blocks(css=css) as demo:
 
     gr.HTML("<br><br><br>")
 
-    magic_prompt = gr.TextArea(SETTINGS["magic_prompt"], label="Prompt suffix")
+    with gr.Accordion(label="Advanced Settings", open=False):
+        with gr.Row():
+            import_config_btn = gr.File(file_count="single", type="filepath", label="Import settings", file_types=[".conf"])
+            export_config_btn = gr.Button("Export current configuration")
+
+        gr.HTML("<br>")
+
+        magic_prompt = gr.TextArea(SETTINGS["magic_prompt"], label="Prompt suffix")
+
+    all_inputs = [ magic_prompt, masking_model, masks, mask_expansion, prompt, negative_prompt, resolution, inpaint_model, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity ]
+    export_config_btn.click(export_config, inputs=all_inputs, outputs=[import_config_btn])
+    import_config_btn.upload(import_config, inputs=[import_config_btn], outputs=all_inputs)
+
     magic_prompt.input(change_magic_prompt, inputs=[ magic_prompt ], outputs=[])
 
     mask_preview.change(handle_mask_draw, inputs=[mask_preview, state], outputs=[state])
