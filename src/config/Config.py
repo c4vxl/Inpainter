@@ -3,6 +3,7 @@ MAGIC_PROMPT = " Ensure ultra-realistic and anatomically correct rendering. Main
 # Default models
 DIFFUSION_INPAINTER_DEFAULT_MODEL = "diffusers/stable-diffusion-xl-1.0-inpainting-0.1"
 SEGFORMER_MASKER_DEFAULT_MODEL = "mattmdjaga/segformer_b2_clothes"
+DIFFUSION_ENHANCER_DEFAULT_MODEL = "stabilityai/stable-diffusion-x4-upscaler"
 
 # Filters
 USE_SAFETY_CHECKER = True
