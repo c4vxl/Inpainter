@@ -157,6 +157,7 @@ tr { background: #18181B; }
 tr:nth-child(even) { background: #27272A; }
 tr:hover { background: #52525B; }
 footer {height: 0px; visibility: hidden}
+a { color: #7d7d80 }
 """
 
 with gr.Blocks(css=css) as demo:
@@ -300,7 +301,11 @@ with gr.Blocks(css=css) as demo:
 
     gr.HTML("""                       
     <hr>    
-    <center><p style="font-size: 20px;">A project by <a href="https://c4vxl.de/">c4vxl</a></p></center>
+    <center><p style="font-size: 20px; display: flex; gap: 20px; justify-content: center">
+            <span>A project by <a style="margin-left: 4px" href="https://c4vxl.de/">c4vxl</a></span>
+            <span style="opacity: 0.5">|</span>
+            <span><a href="https://github.com/c4vxl/Inpainter/">View on GitHub</a></span>
+    </p></center>
     """)
 
 demo.launch()
