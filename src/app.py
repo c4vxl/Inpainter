@@ -394,7 +394,7 @@ with gr.Blocks(css=css) as demo:
         Mask Blur | Softens mask edges for smoother transitions between edited and original areas. | <center>{mask_blur}</center>
         Use Safety Checker | Filters NSFW content. | <center>{use_safety_checker}</center>
         Load in 4-bit | Reduces GPU memory usage at a minor cost to model precision. | <center>{load_in_4bit}</center>
-        LoRa Weights | Add Low rank adaptation modules to the base inpaint model | <center>{lora_modules}</center>
+        LoRa Weights | Add Low rank adaptation modules to the base inpaint model. (Paths can be local paths or huggingface repos) | <center>{lora_modules}</center>
         | | <center>**Enhancement Options**</center> 
         Enhance Background | Improves quality and sharpness of non-masked areas. | <center>{enhance_background}</center>
         Face Upsample | Enhances facial detail and clarity. | <center>{face_upsample}</center>
