@@ -337,7 +337,7 @@ with gr.Blocks(css=css) as demo:
 
     run_event = run_btn.click(
         fn=run,
-        inputs=[ input_image, prompt, negative_prompt, inpaint_model, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, resolution, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, state ],
+        inputs=[ input_image, prompt, negative_prompt, inpaint_model, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, resolution, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, lora_modules, state ],
         outputs=[ output_preview ]
     )
 
