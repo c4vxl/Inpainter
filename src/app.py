@@ -12,6 +12,8 @@ from config import Config
 import gradio as gr
 
 SETTINGS = {
+    "theme": "light",
+
     "magic_prompt": Config.MAGIC_PROMPT,
 
     "masking_model": Config.SEGFORMER_MASKER_DEFAULT_MODEL,
@@ -232,16 +234,27 @@ def import_config(config_path: str):
 
 css = """
 * { font-family: system-ui; }
-tr { background: #18181B; }
-tr:nth-child(even) { background: #27272A; }
-tr:hover { background: #52525B; }
+tr { background: var(--checkbox-background-color); }
+tr:nth-child(even) { background: var(--checkbox-border-color); }
+tr:hover { background: var(--checkbox-border-color-hover); }
 footer {height: 0px; visibility: hidden}
 a { color: #7d7d80 }
 .svelte-1ixn6qd { height: 100%; max-height: unset; flex-grow: 1 }
 .svelte-1xp0cw7 { display: flex; justify-content: center; align-items: center }
 """
 
-with gr.Blocks(css=css) as demo:
+js = """
+function refresh() {
+    const url = new URL(window.location);
+
+    if (!url.searchParams.has("__theme")) {
+        url.searchParams.set('__theme', '""" + SETTINGS["theme"] + """');
+        window.location.href = url.href;
+    }
+}
+"""
+
+with gr.Blocks(css=css, js=js) as demo:
     state = gr.State({})
 
     with gr.Row():
@@ -315,14 +328,32 @@ with gr.Blocks(css=css) as demo:
 
     gr.HTML("<br><br><br>")
 
-    with gr.Accordion(label="Advanced Settings", open=False):
+    with gr.Accordion(label="Settings"):
+        gr.Markdown("### Themes:")
+        # Theme switcher button
+        gr.HTML(
+            """
+            <button id="toggle_theme_button" onclick="
+            // Apparently new URL doesn't work
+            let current_theme = (window.location.search.replace('?', '').split('&')
+                .map(x => x.split('='))
+                .find(x => x[0] == '__theme') || ['__theme', 'light'])
+                [1];
+
+            let new_theme = current_theme == 'light' ? 'dark' : 'light';
+
+            window.location.href = `?__theme=${new_theme}`"
+            class="lg secondary svelte-1ixn6qd">Toggle dark / light theme</button>
+            """
+        )
+
+        gr.Markdown("### Import and export configuration:")
         with gr.Row():
             import_config_btn = gr.File(file_count="single", type="filepath", label="Import settings", file_types=[".conf"])
             export_config_btn = gr.Button("Export current configuration")
 
-        gr.HTML("<br>")
-
-        magic_prompt = gr.TextArea(SETTINGS["magic_prompt"], label="Prompt suffix")
+        gr.Markdown("### Prompt suffix:")
+        magic_prompt = gr.TextArea(SETTINGS["magic_prompt"], label="Enter prompt suffix:")
 
     all_inputs = [ magic_prompt, masking_model, masks, mask_expansion, prompt, negative_prompt, resolution, inpaint_model, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, lora_modules ]
     export_config_btn.click(export_config, inputs=all_inputs, outputs=[import_config_btn])
