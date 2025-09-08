@@ -3,7 +3,7 @@
 <p align="center"><b>Inpainter</b> is a python tool that implements a <b>selective image inpainting</b> pipeline. It allows you to modify specific parts of an image, such as clothing, background, or facial features, while preserving natural textures, proportions, and lighting.</p>
 
 <p align="center">
-  <img src="./resources/preview.png" style="max-width: 120ch; width: 100%;" />
+  <img src="./resources/example.png" style="max-width: 120ch; width: 100%;" />
 </p>
 
 <br>
@@ -65,6 +65,7 @@ pip install -r requirements.txt
 Now the environment has been set up and you can use the:
 
 ### WebUI
+![preview](./resources/preview.png)
 ```bash
 python src/app.py
 ```
@@ -138,6 +139,7 @@ Number of Images per Prompt | How many variations the model will generate for ea
 Mask Blur | Softens mask edges for smoother transitions between edited and original areas.
 Use Safety Checker | Filters NSFW content.
 Load in 4-bit | Reduces GPU memory usage at a minor cost to model precision.
+LoRa Weights | Add Low rank adaptation modules to the base inpaint model | <center>{lora_modules}</center>
 | | <center>**Enhancement Options**</center> 
 Enhance Background | Improves quality and sharpness of non-masked areas.
 Face Upsample | Enhances facial detail and clarity.

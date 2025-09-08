@@ -7,6 +7,9 @@ class Inpainter():
     def _generate(self, prompt: str, image: Image.Image, mask: Image.Image, **kwargs) -> list[Image.Image]:
         raise NotImplementedError()
 
+    def _load_lora_weights(self, path: str):
+        pass
+
     @torch.no_grad()
     def __call__(self, prompt: str, image: Image.Image, mask: Image.Image, resolution = 2048, **kwargs) -> list[Image.Image]:
         original_size = image.size

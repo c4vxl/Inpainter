@@ -1,5 +1,5 @@
 import torch
-from diffusers import DiffusionPipeline
+from diffusers import DiffusionPipeline # type: ignore
 from PIL import Image
 
 from config.Config import DIFFUSION_INPAINTER_DEFAULT_MODEL, LOAD_IN_4BIT, USE_SAFETY_CHECKER
@@ -10,14 +10,14 @@ class DiffusionInpainter(Inpainter):
         super().__init__()
 
         if load_in_4bit:
-            self.pipe = DiffusionPipeline.from_pretrained(
+            self.pipe: DiffusionPipeline = DiffusionPipeline.from_pretrained(
                 model_name,
                 torch_dtype=torch.float16,
                 load_in_4bit=True,
                 **kwargs
             )
         else:
-            self.pipe = DiffusionPipeline.from_pretrained(model_name, **kwargs)
+            self.pipe: DiffusionPipeline = DiffusionPipeline.from_pretrained(model_name, **kwargs)
         
         if not use_safety_checker:
             self.pipe.safety_checker = None
@@ -28,3 +28,6 @@ class DiffusionInpainter(Inpainter):
         out = self.pipe(prompt=prompt, image=image, mask_image=mask, **kwargs) # type: ignore
 
         return out.images
+    
+    def _load_lora_weights(self, path: str):
+        self.pipe.load_lora_weights(path)

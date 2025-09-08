@@ -36,6 +36,8 @@ SETTINGS = {
     "has_aligned": False,
     "upscale_value": 4,
     "fidelity": 0.5,
+
+    "lora_modules": ""
 }
 
 def generate_mask(image: Image.Image, masking_model: str, masks: list[str], mask_expansion: int, state: dict, progress=gr.Progress(track_tqdm=True)):
@@ -91,6 +93,7 @@ def run(image: Image.Image, prompt: str, negative_prompt: str,
         use_safety_checker: bool, load_in_4bit: bool,
         enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float,
         resolution: int, guidance_scale: float, strength: float, num_inference_steps: int, num_images_per_prompt: int, mask_blur: int,
+        lora_modules: str,
         state: dict, progress=gr.Progress(track_tqdm=True)) -> list[Image.Image]:
     if image is None:
         raise FileNotFoundError("Please pass an image.")
@@ -118,6 +121,12 @@ def run(image: Image.Image, prompt: str, negative_prompt: str,
     progress(0, desc="Preparing models...")
     model = DiffusionInpainter(inpaint_model, load_in_4bit, use_safety_checker)
     enhancer = CodeFormer()
+
+    if lora_modules:
+        progress(0.1, desc="Loading LoRa modules...")
+        loras: list[str] = lora_modules.replace(", ", ",").split(",")
+        for lora_module in loras:
+            model._load_lora_weights(lora_module)
 
     progress(0.2, desc="Loading mask...")
     mask = state.get("mask", None)
@@ -172,7 +181,7 @@ def change_magic_prompt(magic_prompt: str):
 def export_config(magic_prompt: str, masking_model: str, masks: list[str], mask_expansion: int, prompt: str, negative_prompt: str,
                   resolution: int, inpaint_model: str, guidance_scale: float, strength: float,
                   num_inference_steps: int, num_images_per_prompt: int, mask_blur: int, use_safety_checker: bool, load_in_4bit: bool,
-                  enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float):
+                  enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float, lora_modules: str):
     config_data = json.dumps({
         "magic_prompt": magic_prompt,
         "masking_model": masking_model,
@@ -194,7 +203,8 @@ def export_config(magic_prompt: str, masking_model: str, masks: list[str], mask_
         "draw_box": draw_box,
         "has_aligned": has_aligned,
         "upscale_value": upscale_value,
-        "fidelity": fidelity
+        "fidelity": fidelity,
+        "lora_modules": lora_modules
     }, indent=4)
 
     with tempfile.NamedTemporaryFile(delete=False, suffix='.conf') as tmpfile:
@@ -217,7 +227,7 @@ def import_config(config_path: str):
     return get("magic_prompt"), get("masking_model"), get("masks"), get("mask_expansion"), get("prompt"), get("negative_prompt"), \
             get("resolution"), get("inpaint_model"), get("guidance_scale"), get("strength"), get("num_inference_steps"), get("num_images_per_prompt"), \
             get("mask_blur"), get("use_safety_checker"), get("load_in_4bit"), get("enhance_background"), get("face_upsample"), get("draw_box"), \
-            get("has_aligned"), get("upscale_value"), get("fidelity"),
+            get("has_aligned"), get("upscale_value"), get("fidelity"), get("lora_modules")
     
 
 css = """
@@ -287,6 +297,9 @@ with gr.Blocks(css=css) as demo:
                 with gr.Row():
                     num_images_per_prompt = gr.Number(value=SETTINGS["num_images"], label="Number of images to generate")
                     mask_blur = gr.Number(value=SETTINGS["mask_blur"], label="Mask blur value")
+            
+            with gr.Accordion("LoRa Configuration", open=False):
+                lora_modules = gr.Textbox(placeholder="Add LoRa modules (seperated by ',')", label="LoRa Weights", value=SETTINGS["lora_modules"])
 
             with gr.Accordion("Enhancement options", open=False):
                 with gr.Row():
@@ -311,7 +324,7 @@ with gr.Blocks(css=css) as demo:
 
         magic_prompt = gr.TextArea(SETTINGS["magic_prompt"], label="Prompt suffix")
 
-    all_inputs = [ magic_prompt, masking_model, masks, mask_expansion, prompt, negative_prompt, resolution, inpaint_model, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity ]
+    all_inputs = [ magic_prompt, masking_model, masks, mask_expansion, prompt, negative_prompt, resolution, inpaint_model, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, lora_modules ]
     export_config_btn.click(export_config, inputs=all_inputs, outputs=[import_config_btn])
     import_config_btn.upload(import_config, inputs=[import_config_btn], outputs=all_inputs)
 
@@ -381,6 +394,7 @@ with gr.Blocks(css=css) as demo:
         Mask Blur | Softens mask edges for smoother transitions between edited and original areas. | <center>{mask_blur}</center>
         Use Safety Checker | Filters NSFW content. | <center>{use_safety_checker}</center>
         Load in 4-bit | Reduces GPU memory usage at a minor cost to model precision. | <center>{load_in_4bit}</center>
+        LoRa Weights | Add Low rank adaptation modules to the base inpaint model | <center>{lora_modules}</center>
         | | <center>**Enhancement Options**</center> 
         Enhance Background | Improves quality and sharpness of non-masked areas. | <center>{enhance_background}</center>
         Face Upsample | Enhances facial detail and clarity. | <center>{face_upsample}</center>
