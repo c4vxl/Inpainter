@@ -12,8 +12,6 @@ from config import Config
 import gradio as gr
 
 SETTINGS = {
-    "theme": "light",
-
     "magic_prompt": Config.MAGIC_PROMPT,
 
     "masking_model": Config.SEGFORMER_MASKER_DEFAULT_MODEL,
@@ -246,9 +244,10 @@ a { color: #7d7d80 }
 js = """
 function refresh() {
     const url = new URL(window.location);
+    const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
     if (!url.searchParams.has("__theme")) {
-        url.searchParams.set('__theme', '""" + SETTINGS["theme"] + """');
+        url.searchParams.set('__theme', prefersDarkScheme ? 'dark' : 'light');
         window.location.href = url.href;
     }
 }
