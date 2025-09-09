@@ -44,4 +44,6 @@ env/
 *.env.*
 
 # Added
+results/
 images/
+use/
