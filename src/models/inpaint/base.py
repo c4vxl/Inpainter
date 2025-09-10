@@ -8,7 +8,7 @@ class Inpainter():
         raise NotImplementedError()
 
     def _load_lora_weights(self, path: str):
-        pass
+        raise NotImplementedError()
 
     @torch.no_grad()
     def __call__(self, prompt: str, image: Image.Image, mask: Image.Image, resolution = 2048, **kwargs) -> list[Image.Image]:
