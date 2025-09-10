@@ -26,13 +26,13 @@ class PipeV1(Pipeline):
             codeformer_fidelity = fidelity
         )
     
-    def _generate_images(self, image: Image.Image, mask: Image.Image,
+    def _generate_images(self, image: Image.Image, reference_image: Image.Image, mask: Image.Image,
                   prompt: str, negative_prompt: str = "",
                   resolution: int = 2048, guidance_scale: float = 10., strength: float = 0.4,
                   mask_blur: int = 1, num_inference_steps: int = 75, num_images_per_prompt: int = 4):
         return self.inpainter(
             prompt, image, mask, resolution,
-            reference_image=image,
+            reference_image=reference_image,
             guidance_scale=guidance_scale,
             strength=strength,
             num_inference_steps=num_inference_steps,
@@ -41,13 +41,14 @@ class PipeV1(Pipeline):
             num_images_per_prompt=num_images_per_prompt
         )
 
-    def _generate(self, image: Image.Image, prompt: str, mask_labels: list[str], mask_expand: int = 0,
+    def _generate(self, image: Image.Image, prompt: str, mask_labels: list[str], reference_image: Image.Image|None = None, mask_expand: int = 0,
                   negative_prompt: str = "",
                   resolution: int = 2048, guidance_scale: float = 10., strength: float = 0.4,
                   mask_blur: int = 1, num_inference_steps: int = 75, num_images_per_prompt: int = 4,
                   upscale_value: int = 2, enhance_background: bool = True, face_upsample: bool = True, fidelity: float = 0.8) -> list[Image.Image]:
+        reference_image = reference_image or image
         mask = self._generate_mask(image, mask_labels, mask_expand)
-        images = self._generate_images(image, mask, prompt, negative_prompt, resolution, guidance_scale, strength, mask_blur, num_inference_steps, num_images_per_prompt)
+        images = self._generate_images(image, reference_image, mask, prompt, negative_prompt, resolution, guidance_scale, strength, mask_blur, num_inference_steps, num_images_per_prompt)
         enhanced = self._enhance_images(images, upscale_value, enhance_background, face_upsample, fidelity)
 
         return enhanced
