@@ -88,7 +88,7 @@ def clear_mask(state: dict):
 
     return compose_mask(image, mask), state
 
-def run(image: Image.Image, prompt: str, negative_prompt: str,
+def run(image: Image.Image, reference_image: Image.Image | None, prompt: str, negative_prompt: str,
         inpaint_model: str,
         use_safety_checker: bool, load_in_4bit: bool,
         enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float,
@@ -115,6 +115,7 @@ def run(image: Image.Image, prompt: str, negative_prompt: str,
         - num_inference_steps: {num_inference_steps}
         - num_images_per_prompt: {num_images_per_prompt}
         - mask_blur: {mask_blur}
+        - use_reference_image: {reference_image is not None}
     """)
 
     # Load models
@@ -138,7 +139,7 @@ def run(image: Image.Image, prompt: str, negative_prompt: str,
     # Generate with inpaint
     images = model(
         prompt + SETTINGS["magic_prompt"], image, mask, resolution,
-        reference_image=image,
+        reference_image=reference_image or image,
         guidance_scale=guidance_scale,
         strength=strength,
         num_inference_steps=num_inference_steps,
@@ -259,6 +260,10 @@ with gr.Blocks(css=css, js=js) as demo:
     with gr.Row():
         with gr.Column():
             input_image = gr.Image(label="Input image", type="pil")
+
+            with gr.Accordion("Reference Image", open=False):
+                reference_image = gr.Image(label="Add reference image", type="pil")
+
             prompt = gr.TextArea(label="Prompt")
             negative_prompt = gr.TextArea(label="Negative Prompt", value=SETTINGS["negative_prompt"])
 
@@ -367,7 +372,7 @@ with gr.Blocks(css=css, js=js) as demo:
 
     run_event = run_btn.click(
         fn=run,
-        inputs=[ input_image, prompt, negative_prompt, inpaint_model, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, resolution, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, lora_modules, state ],
+        inputs=[ input_image, reference_image, prompt, negative_prompt, inpaint_model, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, resolution, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, lora_modules, state ],
         outputs=[ output_preview ]
     )
 
