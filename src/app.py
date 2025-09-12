@@ -1,3 +1,4 @@
+import time
 import sys
 import threading
 import darkdetect
@@ -67,4 +68,5 @@ if __name__ == "__main__":
     port = 3321
 
     start_server(port)
+    time.sleep(0.2)
     start_desktop(port)
