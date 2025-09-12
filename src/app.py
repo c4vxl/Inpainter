@@ -260,6 +260,9 @@ footer {height: 0px; visibility: hidden}
 a { color: #7d7d80 }
 .svelte-1ixn6qd { height: 100%; max-height: unset; flex-grow: 1 }
 .svelte-1xp0cw7 { display: flex; justify-content: center; align-items: center }
+
+::-webkit-scrollbar { width: 1px; height: 1px; }
+::-webkit-scrollbar-thumb { background-color: var(--checkbox-border-color); }
 """
 
 js = """
@@ -478,13 +481,14 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
     </p></center>
     """)
 
-def start(inbrowser: bool = False, share: bool = False, **kwargs) -> str:
-    # Start demo and return url
+def start(inbrowser: bool = False, share: bool = False, ip: str = "127.0.0.1", port: int = 3021, **kwargs):
     return demo.launch(
         inbrowser=inbrowser,
         share=share,
+        server_name=ip,
+        server_port=port,
         favicon_path="./resources/logo.png",
-        **kwargs)[1]
+        **kwargs)
 
 if __name__ == "__main__":
     start()
