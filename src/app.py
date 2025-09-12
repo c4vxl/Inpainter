@@ -24,7 +24,7 @@ SETTINGS = {
     "inpainting_model": Config.DIFFUSION_INPAINTER_DEFAULT_MODEL,
     "guidance_scale": 10.,
     "strength": 0.5,
-    "num_inference_steps": 75,
+    "num_inference_steps": 20,
     "num_images": 4,
     "mask_blur": 2,
     "use_safety_checker": Config.USE_SAFETY_CHECKER,

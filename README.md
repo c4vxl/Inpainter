@@ -154,7 +154,13 @@ Fidelity | Balances identity preservation vs. image quality in face enhancements
 
 # Resources
 - [sczhou/CodeFormer](https://github.com/sczhou/CodeFormer)
+- [CutePickle/FLUX.1-Fill-dev-nf4](https://huggingface.co/CutePickle/FLUX.1-Fill-dev-nf4)
 - [mattmdjaga/segformer_b2_clothes](https://huggingface.co/mattmdjaga/segformer_b2_clothes)
+
+<br>
+
+> [!IMPORTANT]
+> While this application allows for loading all sorts of Hugging Face-compatible models, please adhere to the official requirements and guidelines of the models you use.
 
 <br>
 
