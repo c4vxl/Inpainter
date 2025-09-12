@@ -56,11 +56,11 @@ def generate_mask(image: Image.Image, masking_model: str, masks: list[str], mask
         "background": image,
         "layers": [ image ],
         "composite": compose_mask(image, mask)
-    }, state
+    }, mask, state
 
 def handle_mask_draw(mask_preview, state: dict):
     if "image" not in state.keys():
-        return state
+        return state.get("mask"), state
 
     image = state["image"]
     current_mask = state.get("mask", Image.new("L", image.size)).convert("L")
@@ -74,19 +74,18 @@ def handle_mask_draw(mask_preview, state: dict):
 
     combined_mask = ImageChops.lighter(current_mask_bin, new_mask_bin)
     state["mask"] = combined_mask
-    
-    return state
+    return combined_mask, state
 
 def clear_mask(state: dict):
     if "image" not in state.keys():
-        return gr.update(), state
+        return gr.update(), state.get("mask"), state
 
     image = state["image"]
     mask = Image.new("L", image.size).convert("L")
 
     state["mask"] = mask
 
-    return compose_mask(image, mask), state
+    return compose_mask(image, mask), mask, state
 
 def run(image: Image.Image, reference_image: Image.Image | None, prompt: str, negative_prompt: str,
         inpaint_model: str,
@@ -285,6 +284,9 @@ with gr.Blocks(css=css, js=js) as demo:
                 show_download_button=False
             )
 
+            with gr.Accordion("Binary mask preview", open=False):
+                binary_mask_preview = gr.Image(interactive=False, label="Binary mask")
+
             gr.Markdown("## Masking Options")
             masks = gr.CheckboxGroup(choices=list(SETTINGS["masks_all"]), label="Choose preset(s)", value=SETTINGS["masks"])
             mask_expansion = gr.Slider(0, 300, value=SETTINGS["mask_expansion"], step=1, label='Expand Mask (px)')
@@ -365,10 +367,10 @@ with gr.Blocks(css=css, js=js) as demo:
 
     magic_prompt.input(change_magic_prompt, inputs=[ magic_prompt ], outputs=[])
 
-    mask_preview.change(handle_mask_draw, inputs=[mask_preview, state], outputs=[state])
-    mask_clear_button.click(generate_mask, inputs=[input_image, masking_model, masks, mask_expansion, state], outputs=[mask_preview, state])
-    mask_draw_own.click(clear_mask, inputs=[state], outputs=[mask_preview, state])
-    input_image.upload(generate_mask, inputs=[input_image, masking_model, masks, mask_expansion, state], outputs=[mask_preview, state])
+    mask_preview.change(handle_mask_draw, inputs=[mask_preview, state], outputs=[binary_mask_preview, state])
+    mask_clear_button.click(generate_mask, inputs=[input_image, masking_model, masks, mask_expansion, state], outputs=[mask_preview, binary_mask_preview, state])
+    mask_draw_own.click(clear_mask, inputs=[state], outputs=[mask_preview, binary_mask_preview, state])
+    input_image.upload(generate_mask, inputs=[input_image, masking_model, masks, mask_expansion, state], outputs=[mask_preview, binary_mask_preview, state])
 
     run_event = run_btn.click(
         fn=run,
