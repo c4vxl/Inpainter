@@ -9,7 +9,7 @@ class DiffusionInpainter(Inpainter):
     def __init__(self, model_name: str = DIFFUSION_INPAINTER_DEFAULT_MODEL, load_in_4bit = LOAD_IN_4BIT, use_safety_checker: bool = USE_SAFETY_CHECKER, **kwargs) -> None:
         super().__init__()
 
-        self.pipe: DiffusionPipeline = DiffusionPipeline.from_pretrained(model_name, load_in_4bit=load_in_4bit, **kwargs)
+        self.pipe: DiffusionPipeline = DiffusionPipeline.from_pretrained(model_name, load_in_4bit=load_in_4bit, torch_dtype=torch.bfloat16, **kwargs)
         
         if not use_safety_checker:
             self.pipe.safety_checker = None
