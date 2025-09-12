@@ -85,6 +85,8 @@ def clear_mask(state: dict):
 
     state["mask"] = mask
 
+    gr.Success("Mask has been cleared.")
+
     return compose_mask(image, mask), mask, state
 
 def run(image: Image.Image, reference_image: Image.Image | None, prompt: str, negative_prompt: str,
@@ -147,6 +149,8 @@ def run(image: Image.Image, reference_image: Image.Image | None, prompt: str, ne
         num_images_per_prompt=num_images_per_prompt
     )
 
+    state["before_enhancement"] = images
+
     # Enhance results
     progress(0.9, desc="Enhancing images...")
     images = enhancer(
@@ -156,10 +160,12 @@ def run(image: Image.Image, reference_image: Image.Image | None, prompt: str, ne
         has_aligned = has_aligned, draw_box = draw_box
     )
 
+    gr.Success("Images have been generated!")
+
     # show images
     return images
 
-def rerun_enhancer(image_paths: list[str], enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float, progress=gr.Progress(track_tqdm=True)):
+def rerun_enhancer(image_paths: list[str], enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float):
     enhancer = CodeFormer()
 
     images = [ Image.open(path).convert("RGB") for path, _ in image_paths ]
@@ -171,6 +177,8 @@ def rerun_enhancer(image_paths: list[str], enhance_background: bool, face_upsamp
         codeformer_fidelity = fidelity,
         has_aligned = has_aligned, draw_box = draw_box
     )
+
+    gr.Success("Enhancer has been run successfully.")
 
     # show images
     return images
@@ -210,6 +218,8 @@ def export_config(magic_prompt: str, masking_model: str, masks: list[str], mask_
     with tempfile.NamedTemporaryFile(delete=False, suffix='.conf') as tmpfile:
         tmpfile.write(config_data.encode('utf-8'))
         tmpfile_path = tmpfile.name
+
+    gr.Info("Config is ready for download.")
     
     return tmpfile_path
 
@@ -224,11 +234,22 @@ def import_config(config_path: str):
     def get(key: str):
         return data.get(key, SETTINGS.get(key, ""))
     
+    gr.Success("Config was imported successfully.")
+
     return get("magic_prompt"), get("masking_model"), get("masks"), get("mask_expansion"), get("prompt"), get("negative_prompt"), \
             get("resolution"), get("inpaint_model"), get("guidance_scale"), get("strength"), get("num_inference_steps"), get("num_images_per_prompt"), \
             get("mask_blur"), get("use_safety_checker"), get("load_in_4bit"), get("enhance_background"), get("face_upsample"), get("draw_box"), \
             get("has_aligned"), get("upscale_value"), get("fidelity"), get("lora_modules")
+
+def undo_enhancement(state: dict):
+    before = state.get("before_enhancement", None)
+
+    if before is None:
+        raise FileNotFoundError("No before-enhancement checkpoint was found!")
     
+    gr.Success("Enhancements have been un-done.")
+
+    return before
 
 css = """
 * { font-family: system-ui; }
@@ -330,7 +351,8 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
                 upscale_value = gr.Slider(1, 4, value=SETTINGS["upscale_value"], step=1, label='Upscale value')
                 fidelity = gr.Slider(0, 1, value=SETTINGS["fidelity"], step=0.01, label='Fidelity (0 for better quality, 1 for better identity)')
 
-                rerun_enhancer_btn = gr.Button("Rerun enhancer")
+                rerun_enhancer_btn = gr.Button("Run enhancer")
+                undo_enhancer_btn = gr.Button("Undo enhancement")
 
     gr.HTML("<br><br><br>")
 
@@ -378,7 +400,13 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
         outputs=[ output_preview ]
     )
 
-    rerun_event = rerun_enhancer_btn.click(
+    undo_enhancer_btn.click(
+        fn=undo_enhancement,
+        inputs=[state],
+        outputs=[ output_preview ]
+    )
+
+    rerun_enhancer_btn.click(
         fn=rerun_enhancer,
         inputs=[ output_preview, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity ],
         outputs=[ output_preview ]
