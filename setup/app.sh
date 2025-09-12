@@ -25,6 +25,14 @@ echo "  | Installing packages"
 uv pip install -r requirements.txt
 
 echo "  | Creating launcher"
+cat <<'EOF' | sudo tee /usr/bin/inpainter > /dev/null
+#!/bin/bash
+cd "$HOME/.local/share/Inpainter/"
+source .venv/bin/activate
+python src/server.py "$@"
+EOF
+sudo chmod +x /usr/bin/inpainter
+
 cat <<'EOF' | sudo tee /usr/bin/inpainter-app > /dev/null
 #!/bin/bash
 cd "$HOME/.local/share/Inpainter/"

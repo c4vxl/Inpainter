@@ -1,5 +1,6 @@
 from PIL import Image, ImageChops
 
+import argparse
 import tempfile
 import json
 
@@ -490,5 +491,16 @@ def start(inbrowser: bool = False, share: bool = False, ip: str = "127.0.0.1", p
         favicon_path="./resources/logo.png",
         **kwargs)
 
+def get_args():
+    parser = argparse.ArgumentParser(description="Run the inpainter backend server.")
+    parser.add_argument("--share", "-s", action="store_true", help="Generate a public access point to this instance.")
+    parser.add_argument("--port", "-p", type=int, help="Set the port the gradio server should run on.")
+    parser.add_argument("--host", "-h", type=str, help="Set the host the gradio server should run on.")
+    parser.add_argument("--browser", "-b", action="store_true", help="Open the browser on the page of the gradio server.")
+
+    return parser.parse_args()
+
 if __name__ == "__main__":
-    start()
+    args = get_args()
+
+    start(inbrowser=args.browser, share=args.share, ip=args.host, port=args.port)
