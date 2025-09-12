@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./resources/logo.svg" style="max-width: 20ch; width: 100%;" />
+</p>
+
 <h2 align="center">Inpainter</h2>
 
 <p align="center"><b>Inpainter</b> is a python tool that implements a <b>selective image inpainting</b> pipeline. It allows you to modify specific parts of an image, such as clothing, background, or facial features, while preserving natural textures, proportions, and lighting.</p>

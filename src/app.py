@@ -253,7 +253,7 @@ function refresh() {
 }
 """
 
-with gr.Blocks(css=css, js=js) as demo:
+with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
     state = gr.State({})
 
     with gr.Row():
@@ -450,4 +450,13 @@ with gr.Blocks(css=css, js=js) as demo:
     </p></center>
     """)
 
-demo.launch()
+def start(inbrowser: bool = False, share: bool = False, **kwargs) -> str:
+    # Start demo and return url
+    return demo.launch(
+        inbrowser=inbrowser,
+        share=share,
+        favicon_path="./resources/logo.svg",
+        **kwargs)[1]
+
+if __name__ == "__main__":
+    start()
