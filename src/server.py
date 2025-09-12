@@ -494,7 +494,7 @@ def start(inbrowser: bool = False, share: bool = False, ip: str = "127.0.0.1", p
 def get_args():
     parser = argparse.ArgumentParser(description="Run the inpainter backend server.")
     parser.add_argument("--share", "-s", action="store_true", help="Generate a public access point to this instance.")
-    parser.add_argument("--port", "-p", type=int, help="Set the port the gradio server should run on.")
+    parser.add_argument("--port", "-p", type=int, default=3021, help="Set the port the gradio server should run on.")
     parser.add_argument("--host", "-ht", type=str, help="Set the host the gradio server should run on.")
     parser.add_argument("--browser", "-b", action="store_true", help="Open the browser on the page of the gradio server.")
 
