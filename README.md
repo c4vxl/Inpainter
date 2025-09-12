@@ -85,6 +85,13 @@ python src/app.py
 ```
 
 <br>
+
+Here's a setup command to install the desktop app on linux:
+```sh
+bash <(curl -s https://raw.githubusercontent.com/c4vxl/Inpainter/refs/heads/main/setup/app.sh)
+```
+
+<br>
 <center>or use the</center>
 <br>
 
