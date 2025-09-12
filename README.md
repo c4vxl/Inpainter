@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./resources/logo.svg" style="max-width: 20ch; width: 100%;" />
+  <img src="./resources/logo_small.png"/>
 </p>
 
 <h2 align="center">Inpainter</h2>

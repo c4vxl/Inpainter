@@ -455,7 +455,7 @@ def start(inbrowser: bool = False, share: bool = False, **kwargs) -> str:
     return demo.launch(
         inbrowser=inbrowser,
         share=share,
-        favicon_path="./resources/logo.svg",
+        favicon_path="./resources/logo.png",
         **kwargs)[1]
 
 if __name__ == "__main__":
