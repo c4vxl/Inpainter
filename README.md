@@ -29,6 +29,7 @@
     - [Download](#download)
     - [Setup Environment](#activate-environment)
     - [Start WebUI](#webui)
+    - [Desktop App](#desktop-app)
     - [Use PythonAPI](#python-api)
 
 - [Project structure](#project-structure)
@@ -71,12 +72,22 @@ Now the environment has been set up and you can use the:
 ### WebUI
 ![preview](./resources/preview.png)
 ```bash
-python src/app.py
+python src/server.py
 ```
 This launches a local Gradio interface where you can upload an image, apply masks, and run inpainting + enhancement.
 
 <br>
-<center>or the</center>
+
+### Desktop App
+
+_This WebUI can also be run wrapped in a seperately windowed desktop application. For that just run:_
+
+```bash
+python src/app.py
+```
+
+<br>
+<center>or use the</center>
 <br>
 
 ### Python API
