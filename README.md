@@ -76,8 +76,6 @@ python src/server.py
 ```
 This launches a local Gradio interface where you can upload an image, apply masks, and run inpainting + enhancement.
 
-<br>
-
 ### Desktop App
 
 _This WebUI can also be run wrapped in a seperately windowed desktop application. For that just run:_
