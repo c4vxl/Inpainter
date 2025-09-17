@@ -30,6 +30,8 @@ SETTINGS = {
     "mask_blur": 2,
     "use_safety_checker": Config.USE_SAFETY_CHECKER,
     "load_in_4bit": Config.LOAD_IN_4BIT,
+    "strict_mask": True,
+    "strict_mask_forgiveness": 30,
 
     "enhance_background": True,
     "face_upsample": True,
@@ -92,7 +94,7 @@ def clear_mask(state: dict):
 
 def run(image: Image.Image, reference_image: Image.Image | None, prompt: str, negative_prompt: str,
         inpaint_model: str,
-        use_safety_checker: bool, load_in_4bit: bool,
+        use_safety_checker: bool, load_in_4bit: bool, strict_mask: bool, strict_mask_forgiveness: int,
         enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float,
         resolution: int, guidance_scale: float, strength: float, num_inference_steps: int, num_images_per_prompt: int, mask_blur: int,
         lora_modules: str,
@@ -147,7 +149,9 @@ def run(image: Image.Image, reference_image: Image.Image | None, prompt: str, ne
         num_inference_steps=num_inference_steps,
         mask_blur=mask_blur,
         negative_prompt = negative_prompt,
-        num_images_per_prompt=num_images_per_prompt
+        num_images_per_prompt=num_images_per_prompt,
+        strict_mask=strict_mask,
+        strict_mask_forgiveness=strict_mask_forgiveness
     )
 
     state["before_enhancement"] = images
@@ -190,6 +194,7 @@ def change_magic_prompt(magic_prompt: str):
 def export_config(magic_prompt: str, masking_model: str, masks: list[str], mask_expansion: int, prompt: str, negative_prompt: str,
                   resolution: int, inpaint_model: str, guidance_scale: float, strength: float,
                   num_inference_steps: int, num_images_per_prompt: int, mask_blur: int, use_safety_checker: bool, load_in_4bit: bool,
+                  strict_mask: bool, strict_mask_forgiveness: int,
                   enhance_background: bool, face_upsample: bool, draw_box: bool, has_aligned: bool, upscale_value: int, fidelity: float, lora_modules: str):
     config_data = json.dumps({
         "magic_prompt": magic_prompt,
@@ -207,6 +212,8 @@ def export_config(magic_prompt: str, masking_model: str, masks: list[str], mask_
         "mask_blur": mask_blur,
         "use_safety_checker": use_safety_checker,
         "load_in_4bit": load_in_4bit,
+        "strict_mask": strict_mask,
+        "strict_mask_forgiveness": strict_mask_forgiveness,
         "enhance_background": enhance_background,
         "face_upsample": face_upsample,
         "draw_box": draw_box,
@@ -239,8 +246,8 @@ def import_config(config_path: str):
 
     return get("magic_prompt"), get("masking_model"), get("masks"), get("mask_expansion"), get("prompt"), get("negative_prompt"), \
             get("resolution"), get("inpaint_model"), get("guidance_scale"), get("strength"), get("num_inference_steps"), get("num_images_per_prompt"), \
-            get("mask_blur"), get("use_safety_checker"), get("load_in_4bit"), get("enhance_background"), get("face_upsample"), get("draw_box"), \
-            get("has_aligned"), get("upscale_value"), get("fidelity"), get("lora_modules")
+            get("mask_blur"), get("use_safety_checker"), get("load_in_4bit"), get("strict_mask"), get("strict_mask_forgiveness"), get("enhance_background"), \
+            get("face_upsample"), get("draw_box"), get("has_aligned"), get("upscale_value"), get("fidelity"), get("lora_modules")
 
 def undo_enhancement(state: dict):
     before = state.get("before_enhancement", None)
@@ -329,7 +336,8 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
             with gr.Row():
                 use_safety_checker = gr.Checkbox(value=SETTINGS["use_safety_checker"], label="Use safety checker")
                 load_in_4bit = gr.Checkbox(value=SETTINGS["load_in_4bit"], label="Load in 4bit")
-                
+                use_strict_mask = gr.Checkbox(value=SETTINGS["strict_mask"], label="Use strict mask")
+                strict_mask_forgiveness = gr.Number(value=SETTINGS["strict_mask_forgiveness"], label="Strict mask forgiveness")
                 resolution = gr.Number(value=SETTINGS["resolution"], label="Resolution")
                 inpaint_model = gr.Textbox(value=SETTINGS["inpainting_model"], label="Inpaint model (DiffusionPipeline)")
 
@@ -387,7 +395,7 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
         gr.Markdown("### Prompt suffix:")
         magic_prompt = gr.TextArea(SETTINGS["magic_prompt"], label="Enter prompt suffix:")
 
-    all_inputs = [ magic_prompt, masking_model, masks, mask_expansion, prompt, negative_prompt, resolution, inpaint_model, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, lora_modules ]
+    all_inputs = [ magic_prompt, masking_model, masks, mask_expansion, prompt, negative_prompt, resolution, inpaint_model, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, use_safety_checker, load_in_4bit, use_strict_mask, strict_mask_forgiveness, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, lora_modules ]
     export_config_btn.click(export_config, inputs=all_inputs, outputs=[import_config_btn])
     import_config_btn.upload(import_config, inputs=[import_config_btn], outputs=all_inputs)
 
@@ -400,7 +408,7 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
 
     run_event = run_btn.click(
         fn=run,
-        inputs=[ input_image, reference_image, prompt, negative_prompt, inpaint_model, use_safety_checker, load_in_4bit, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, resolution, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, lora_modules, state ],
+        inputs=[ input_image, reference_image, prompt, negative_prompt, inpaint_model, use_safety_checker, load_in_4bit, use_strict_mask, strict_mask_forgiveness, enhance_background, face_upsample, draw_box, has_aligned, upscale_value, fidelity, resolution, guidance_scale, strength, num_inference_steps, num_images_per_prompt, mask_blur, lora_modules, state ],
         outputs=[ output_preview ]
     )
 
@@ -463,6 +471,8 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
         Mask Blur | Softens mask edges for smoother transitions between edited and original areas. | <center>{mask_blur}</center>
         Use Safety Checker | Filters NSFW content. | <center>{use_safety_checker}</center>
         Load in 4-bit | Reduces GPU memory usage at a minor cost to model precision. | <center>{load_in_4bit}</center>
+        Use strict mask | Forces the model to only edit inside the specified mask. | <center>{strict_mask}</center>
+        Strict mask forgiveness | Gives `use_strict_mask` a little head room so that the generated parts blend in with the initial image | <center>{strict_mask_forgiveness}</center>
         LoRa Weights | Add Low rank adaptation modules to the base inpaint model. (Paths can be local paths or huggingface repos) | <center>{lora_modules}</center>
         | | <center>**Enhancement Options**</center> 
         Enhance Background | Improves quality and sharpness of non-masked areas. | <center>{enhance_background}</center>
@@ -473,7 +483,7 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
         Fidelity | Balances identity preservation vs. image quality in face enhancements (0 = more quality, 1 = more identity fidelity). | <center>{fidelity}</center>
         """.format(**SETTINGS))
 
-    gr.HTML("""                       
+    gr.HTML("""
     <hr>    
     <center><p style="font-size: 20px; display: flex; gap: 20px; justify-content: center">
             <span>A project by <a style="margin-left: 4px" href="https://c4vxl.de/">c4vxl</a></span>
