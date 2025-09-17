@@ -10,6 +10,14 @@ class Inpainter():
     def _load_lora_weights(self, path: str):
         raise NotImplementedError()
 
+    def _expand_mask(self, mask: Image.Image, pixels: int = 10) -> Image.Image:
+        mask = mask.convert("L")
+
+        for _ in range(pixels):
+            mask = mask.filter(ImageFilter.MaxFilter(3))
+
+        return mask
+
     @torch.no_grad()
     def __call__(
         self,
@@ -27,7 +35,10 @@ class Inpainter():
         out = self._generate(prompt, image, mask, **kwargs)
 
         if strict_mask and strict_mask_forgiveness > 0:
-            mask = mask.filter(ImageFilter.GaussianBlur(radius=strict_mask_forgiveness))
+            mask = self._expand_mask(mask, strict_mask_forgiveness)
+            mask = mask.point(lambda x: 255 if x > 127 else 0).convert("L")
+
+        mask.show()
 
         final = []
         for img in out:
