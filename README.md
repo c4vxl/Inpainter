@@ -159,7 +159,7 @@ Number of Images per Prompt | How many variations the model will generate for ea
 Mask Blur | Softens mask edges for smoother transitions between edited and original areas.
 Use Safety Checker | Filters NSFW content.
 Load in 4-bit | Reduces GPU memory usage at a minor cost to model precision.
-Use strict mask | Forces the model to only edit inside the specified mask.
+Use strict mask | Forces the model to only edit inside the specified mask. Often yields unrealistic results, only use if necessary.
 Strict mask forgiveness | Gives `use_strict_mask` a little head room so that the generated parts blend in with the initial image
 LoRa Weights | Add Low rank adaptation modules to the base inpaint model. (Paths can be local paths or huggingface repos)
 | | <center>**Enhancement Options**</center> 

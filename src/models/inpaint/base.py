@@ -1,5 +1,6 @@
 from PIL import Image, ImageFilter
 import torch
+import numpy as np
 
 from utils.image_utils import pad_to_size, remove_padding
 
@@ -17,6 +18,25 @@ class Inpainter():
             mask = mask.filter(ImageFilter.MaxFilter(3))
 
         return mask
+    
+    def _apply_strict_mask(self, original: Image.Image, generated: Image.Image, mask: Image.Image, forgiveness: int):
+        original = original.resize(generated.size, Image.LANCZOS)
+        mask = mask.resize(generated.size, Image.NEAREST)
+        mask = mask.point(lambda x: 0 if x > 127 else 255).convert("1")
+        
+        generated = generated.resize(generated.size, Image.LANCZOS)
+
+        generated = generated.convert("RGB")
+        original = original.convert("RGB")
+        mask = mask.convert("1")
+
+        gen_np = np.array(generated)
+        orig_np = np.array(original)
+        mask_np = np.array(mask, dtype=bool)
+
+        gen_np[mask_np] = orig_np[mask_np]
+
+        return Image.fromarray(gen_np)
 
     @torch.no_grad()
     def __call__(
@@ -38,15 +58,10 @@ class Inpainter():
             mask = self._expand_mask(mask, strict_mask_forgiveness)
             mask = mask.point(lambda x: 255 if x > 127 else 0).convert("L")
 
-        mask.show()
-
         final = []
         for img in out:
             if strict_mask:
-                m = mask.resize(img.size, Image.LANCZOS)
-                i = image.resize(img.size, Image.LANCZOS)
-
-                img = Image.composite(img, i, m)
+                img = self._apply_strict_mask(image, img, mask, strict_mask_forgiveness)
             
             img = remove_padding(img, original_size)
             final.append(img)            

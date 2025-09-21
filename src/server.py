@@ -30,7 +30,7 @@ SETTINGS = {
     "mask_blur": 2,
     "use_safety_checker": Config.USE_SAFETY_CHECKER,
     "load_in_4bit": Config.LOAD_IN_4BIT,
-    "strict_mask": True,
+    "strict_mask": False,
     "strict_mask_forgiveness": 30,
 
     "enhance_background": True,
@@ -473,7 +473,7 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
         Mask Blur | Softens mask edges for smoother transitions between edited and original areas. | <center>{mask_blur}</center>
         Use Safety Checker | Filters NSFW content. | <center>{use_safety_checker}</center>
         Load in 4-bit | Reduces GPU memory usage at a minor cost to model precision. | <center>{load_in_4bit}</center>
-        Use strict mask | Forces the model to only edit inside the specified mask. | <center>{strict_mask}</center>
+        Use strict mask | Forces the model to only edit inside the specified mask. Often yields unrealistic results, only use if necessary. | <center>{strict_mask}</center>
         Strict mask forgiveness | Gives `use_strict_mask` a little head room so that the generated parts blend in with the initial image | <center>{strict_mask_forgiveness}</center>
         LoRa Weights | Add Low rank adaptation modules to the base inpaint model. (Paths can be local paths or huggingface repos) | <center>{lora_modules}</center>
         | | <center>**Enhancement Options**</center> 
