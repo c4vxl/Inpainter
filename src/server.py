@@ -70,7 +70,7 @@ def handle_mask_draw(mask_preview, state: dict):
     if mask_preview is None or "layers" not in mask_preview or not mask_preview["layers"]:
         new_mask = Image.new("L", image.size)
     else:
-        new_mask = mask_preview["layers"][0].convert("L")
+        new_mask = mask_preview["layers"][0].convert("L").resize(image.size, Image.NEAREST)
     
     current_mask_bin = current_mask.point(lambda p: 255 if p > 0 else 0)
     new_mask_bin = new_mask.point(lambda p: 255 if p > 0 else 0)
@@ -306,7 +306,9 @@ with gr.Blocks(css=css, js=js, title="Inpainter") as demo:
             mask_preview = gr.ImageEditor(
                 label="Mask preview (editable)",
                 type="pil",
-                sources=[],
+                sources=["upload"],
+                height=None,
+                width=None,
                 interactive=True,
                 brush=gr.Brush(colors=["#447BA0A0"], color_mode="fixed"),
                 eraser=False,
